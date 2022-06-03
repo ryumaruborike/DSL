@@ -36,8 +36,10 @@ public class Lexer {
                 }
             }
         }
+        //for (Token token : tokens){
+        //    System.out.println(token);
+        //}
     }
-
     public ArrayList<Token> get_tokens(){
         return tokens;
     }

@@ -1,239 +1,285 @@
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Parser {
-    int iterator = 0;
-    public ArrayList<Token> tokens;
-    public int len;
-    Parser(ArrayList<Token> tokens, int len) {
+
+    private final ArrayList<Token> tokens;
+    private final int len;
+
+    private int iterator;
+    private int curLine;
+    private Token curToken;
+
+    public boolean correctCode;
+
+    public Parser(ArrayList<Token> tokens, int len) {
         this.tokens = tokens;
         this.len = len;
+        curLine = 0;
+        iterator = 0;
+        curToken = tokens.get(iterator);
+        correctCode = true;
+    }
+
+    public void TERMINAL(String tokenType) throws ParseExc {
+        if (!Objects.equals(curToken.getType(), tokenType)) {
+            correctCode = false;
+            throw new ParseExc(curLine, iterator, curToken, tokenType);
+        }
+    }
+
+    public void terminalCheck(String tokenType) {
+        try {
+            TERMINAL(tokenType);
+        } catch (ParseExc e) {
+            e.getInfo(curLine, iterator, e.current, e.expected);
+            curToken = tokens.get(--iterator);
+        }
+        curToken = tokens.get(++iterator);
+    }
+
+    public boolean body_condition() {
+        return switch (curToken.getType()) {
+            case "VAR", "IF_OPERATION", "FOR", "WHILE", "DO_WHILE", "PRINT" -> true;
+            default -> false;
+        };
+    }
+
+    public boolean body_condition_do_while() {
+        return switch (curToken.getType()) {
+            case "VAR", "IF_OPERATION", "FOR", "DO_WHILE", "PRINT" -> true;
+            default -> false;
+        };
     }
 
     public void lang() throws ParseExc {
-        for (int i = 0;i < len; i++ ){
-            expr_();
+        for (int i = 0; i < len; i++) {
+            curLine++;
+            expr();
         }
-    }
-    public void expr_() throws ParseExc {
-        Token currentToken = tokens.get(iterator);
-        if (currentToken.type.equals("WHILE")){
-            while_do(currentToken);
-            currentToken = tokens.get(iterator);
-        }
-        if (currentToken.type.equals("DO_WHILE")){
-            do_while(currentToken);
-            currentToken = tokens.get(iterator);
-        }
-        if (currentToken.type.equals("IF_OPERATION")){
-            try {
-                IF(currentToken);
-            }
-            catch (ParseExc ex){
-                ex.getMsg(ex.token, ex.expected);
-            }
-            iterator++;
-            currentToken = tokens.get(iterator);
-            try{
-                LB(currentToken);
-            }
-            catch (ParseExc ex){
-                ex.getMsg(ex.token, ex.expected);
-            }
-            iterator++;
-            currentToken = tokens.get(iterator);
-            condition(currentToken);
-            currentToken = tokens.get(iterator);
-            try{
-                RB(currentToken);
-            }
-            catch (ParseExc ex){
-                ex.getMsg(ex.token, ex.expected);
-            }
-            iterator++;
-            currentToken = tokens.get(iterator);
-        }
-        try {
-            var__(currentToken);
-        }
-        catch (ParseExc ex){
-            ex.getMsg(currentToken, "VAR");
-        }
-        iterator++;
-        currentToken = tokens.get(iterator);
-        try{
-            assign_op(currentToken);
-        }
-        catch (ParseExc ex){
-            ex.getMsg(ex.token, ex.expected);
-        }
-        iterator++;
-        currentToken = tokens.get(iterator);
-        while ((!currentToken.type.equals("ENDLINE")) & (!currentToken.type.equals("R_BC")) & (!currentToken.type.equals("L_BC")) & (!currentToken.type.equals("WHILE"))){
-            expr_val(currentToken);
-            iterator++;
-            currentToken = tokens.get(iterator);
-        }
-        if (currentToken.type.equals("WHILE")){
-            try {
-                WHILE(currentToken);
-            }
-            catch(ParseExc ex){
-                ex.getMsg(ex.token, ex.expected);
-            }
-            iterator++;
-            currentToken = tokens.get(iterator);
-            if (currentToken.type.equals("L_BC")){
-                try{
-                    LB(currentToken);
-                }
-                catch (ParseExc ex){
-                    ex.getMsg(ex.token, ex.expected);
-                }
-                iterator++;
-                currentToken = tokens.get(iterator);
-                condition(currentToken);
-                currentToken = tokens.get(iterator);
-                try{
-                    RB(currentToken);
-                }
-                catch (ParseExc ex){
-                    ex.getMsg(ex.token, ex.expected);
-                }
-                iterator++;
-            }
-        }
-        try{
-            currentToken = tokens.get(iterator);
-            ENDLINE(currentToken);
-        }
-        catch (ParseExc ex){
-            ex.getMsg(ex.token, ex.expected);
-        }
-        iterator++;
     }
 
-    public void IF(Token currentToken) throws ParseExc {
-        if (!currentToken.type.equals("IF_OPERATION"))
-            throw new ParseExc(currentToken, "IF_OPERATION");
+    public void expr() {
+        body();
+        terminalCheck("ENDLINE");
     }
 
-    public void var__(Token currentToken) throws ParseExc {
-            if (!currentToken.type.equals("VAR"))
-                throw new ParseExc(currentToken, "VAR");
+    public void body() {
+        switch (curToken.getType()) {
+            case "VAR" -> var();
+            case "IF_OPERATION" -> if_op();
+            case "WHILE" -> while_op();
+            case "DO_WHILE" -> do_while_op();
+            case "FOR" -> for_op();
+            case "PRINT" -> print();
+            case "LL" -> linked_list();
+            case "PRNTLIST" -> linked_list_print();
+            default -> terminalCheck("VAR");
+        }
     }
-    public void assign_op(Token currentToken) throws ParseExc {
-             if (!currentToken.type.equals("ASSIGNMENT_OPERATOR"))
-             {
-                throw new ParseExc(currentToken, "ASSIGNMENT_OPERATOR");
-             }
-    }
-    public void expr_val(Token currentToken) throws ParseExc {
-        if ((currentToken.type.equals("VAR")) | (currentToken.type.equals("DIGIT")))
-            value(currentToken);
-        else
-            try {
-                OP_VALUE(currentToken);
-            }
-            catch(ParseExc ex){
-                ex.getMsg(ex.token, ex.expected);
-            }
 
+    public void expr_value() {
+        switch (curToken.getType()) {
+            case "VAR", "DIGIT" -> value();
+            case "L_BC" -> infinity();
+            default -> terminalCheck("VAR");
+        }
+        while ("OPERATOR".equals(curToken.getType())) {
+            terminalCheck("OPERATOR");
+            value();
+        }
     }
-    public void value(Token currentToken) throws ParseExc {
-        if (currentToken.type.equals("VAR"))
-            var__(currentToken);
-        else
-            try{
-                digit__(currentToken);
+
+    public void value() {
+        switch (curToken.getType()) {
+            case "DIGIT" -> terminalCheck("DIGIT");
+            case "L_BC" -> infinity();
+            default -> terminalCheck("VAR");
+        }
+    }
+
+    public void infinity() {
+        terminalCheck("L_BC");
+        expr_value();
+        terminalCheck("R_BC");
+    }
+
+    public void condition() {
+        terminalCheck("VAR");
+        terminalCheck("COMPARISON_OP");
+        expr_value();
+    }
+
+    public void condition_in_br() {
+        terminalCheck("L_BC");
+        condition();
+        terminalCheck("R_BC");
+    }
+
+    public void if_op() {
+        terminalCheck("IF_OPERATION");
+        condition_in_br();
+        do {
+            body();
+        } while (body_condition());
+        if ("ELSE".equals(curToken.getType())) {
+            else_op();
+        }
+    }
+
+    public void else_op() {
+        terminalCheck("ELSE");
+        do {
+            expr();
+        } while (body_condition());
+    }
+
+    public void while_op() {
+        terminalCheck("WHILE");
+        condition_in_br();
+        do {
+            body();
+        } while (body_condition());
+    }
+
+    public void do_while_op() {
+        terminalCheck("DO_WHILE");
+        do {
+            body();
+        } while (body_condition_do_while());
+        terminalCheck("WHILE");
+        condition_in_br();
+    }
+
+    public void for_op() {
+        terminalCheck("FOR");
+        terminalCheck("L_BC");
+        terminalCheck("VAR");
+        assign();
+        terminalCheck("DIV");
+        condition();
+        terminalCheck("DIV");
+        terminalCheck("VAR");
+        assign();
+        terminalCheck("R_BC");
+        do {
+            body();
+        } while (body_condition());
+    }
+
+    public void assign() {
+        //terminalCheck("VAR");
+        terminalCheck("ASSIGNMENT_OPERATOR");
+        expr_value();
+    }
+
+    public void var() {
+        terminalCheck("VAR");
+        if("POINT".equals(curToken.getType())){
+            ll_operate();
+        }
+        else if("ASSIGNMENT_OPERATOR".equals(curToken.getType())){
+            expr_assign();
+        }
+    }
+
+    public void ll_operate(){
+        //terminalCheck("VAR");
+        terminalCheck("POINT");
+        if("LLadd".equals(curToken.getType())){
+            terminalCheck("LLadd");
+            if("L_BC".equals(curToken.getType())){
+                terminalCheck("L_BC");
+                if("VAR".equals(curToken.getType())){
+                    terminalCheck("VAR");
+                }
+                else if("DIGIT".equals(curToken.getType())) {
+                    terminalCheck("DIGIT");
+                }
+                if("R_BC".equals(curToken.getType())){
+                    terminalCheck("R_BC");
+                }
             }
-            catch (ParseExc ex){
-                ex.getMsg(ex.token, ex.expected);
+        }
+        if("LLremove".equals(curToken.getType())){
+            terminalCheck("LLremove");
+            if("L_BC".equals(curToken.getType())){
+                terminalCheck("L_BC");
+                if("VAR".equals(curToken.getType())){
+                    terminalCheck("VAR");
+                }
+                else if("DIGIT".equals(curToken.getType())) {
+                    terminalCheck("DIGIT");
+                }
+                if("R_BC".equals(curToken.getType())){
+                    terminalCheck("R_BC");
+                }
             }
-    }
-    public void digit__(Token currentToken) throws ParseExc{
-        if (!currentToken.type.equals("DIGIT"))
-            throw new ParseExc(currentToken, "DIGIT");
-    }
-    public void OP_VALUE(Token currentToken) throws ParseExc{
-        if (currentToken.type.equals("OPERATOR"))
-            throw new ParseExc(currentToken, "OPERATOR");
-    }
-    public void while_do(Token currentToken) throws ParseExc {
-        WHILE(currentToken);
-        iterator++;
-        currentToken = tokens.get(iterator);
-        try{
-            LB(currentToken);
         }
-        catch (ParseExc ex){
-            ex.getMsg(ex.token, ex.expected);
+        if("LLget".equals(curToken.getType())){
+            terminalCheck("LLget");
+            if("L_BC".equals(curToken.getType())){
+                terminalCheck("L_BC");
+                if("VAR".equals(curToken.getType())){
+                    terminalCheck("VAR");
+                }
+                else if("DIGIT".equals(curToken.getType())) {
+                    terminalCheck("DIGIT");
+                }
+                if("R_BC".equals(curToken.getType())){
+                    terminalCheck("R_BC");
+                }
+            }
         }
-        iterator++;
-        currentToken = tokens.get(iterator);
-        condition(currentToken);
-        currentToken = tokens.get(iterator);
-        try {
-            RB(currentToken);
+        if("LLsize".equals(curToken.getType())){
+            terminalCheck("LLsize");
+            if("L_BC".equals(curToken.getType())){
+                terminalCheck("L_BC");
+                if("VAR".equals(curToken.getType())){
+                    terminalCheck("VAR");
+                }
+                else if("DIGIT".equals(curToken.getType())) {
+                    terminalCheck("DIGIT");
+                }
+                if("R_BC".equals(curToken.getType())){
+                    terminalCheck("R_BC");
+                }
+            }
         }
-        catch (ParseExc ex){
-            ex.getMsg(ex.token, ex.expected);
+    }
+
+    public void expr_assign() {
+        assign();
+        while ("DIV".equals(curToken.getType())) {
+            terminalCheck("DIV");
+            assign();
         }
-        iterator++;
     }
-    public void LB(Token currentToken) throws ParseExc {
-        if (!currentToken.type.equals("L_BC"))
-            throw new ParseExc(currentToken, "L_BC");
-    }
-    public void RB(Token currentToken) throws ParseExc{
-        if (!currentToken.type.equals("R_BC"));
-            throw new ParseExc(currentToken, "R_BC");
-    }
-    public void condition(Token currentToken) throws ParseExc {
-        try {
-            var__(currentToken);
+
+    public void print() {
+        terminalCheck("PRINT");
+        if ("L_BC".equals(curToken.getType())) {
+            terminalCheck("L_BC");
+            if ("DIGIT".equals(curToken.getType())) {
+                terminalCheck("DIGIT");
+            } else {
+                terminalCheck("VAR");
+            }
+            terminalCheck("R_BC");
         }
-        catch (ParseExc ex){
-            ex.getMsg(ex.token, ex.expected);
+    }
+
+    public void linked_list() {
+        terminalCheck("LL");
+        terminalCheck("VAR");
+    }
+
+    public void linked_list_print(){
+        terminalCheck("PRNTLIST");
+        if ("L_BC".equals(curToken.getType())) {
+            terminalCheck("L_BC");
+            terminalCheck("VAR");
+            terminalCheck("R_BC");
         }
-        iterator++;
-        currentToken = tokens.get(iterator);
-        try {
-            COMPARISON_OP(currentToken);
-        }
-        catch (ParseExc ex){
-            ex.getMsg(ex.token, ex.expected);
-        }
-        iterator++;
-        currentToken = tokens.get(iterator);
-        expr_val(currentToken);
-        iterator++;
-    }
-    public void COMPARISON_OP (Token currentToken) throws ParseExc{
-        if (!currentToken.type.equals("COMPARISON_OP"))
-            throw new ParseExc(currentToken, "COMPARISON_OP");
-    }
-    public void WHILE(Token currentToken) throws ParseExc{
-        if (!currentToken.type.equals("WHILE"))
-            throw new ParseExc(currentToken, "WHILE");
-    }
-    public void ENDLINE(Token currentToken) throws ParseExc{
-        if (!currentToken.type.equals("ENDLINE"))
-            throw new ParseExc(currentToken, "ENDLINE");
-    }
-    public void do_while(Token currentToken) throws ParseExc{
-        DO(currentToken);
-        iterator++;
-    }
-    public void DO(Token currentToken) throws ParseExc{
-        if (!currentToken.type.equals("DO_WHILE"))
-            throw new ParseExc(currentToken, "DO");
     }
 }
-//lang->expr+
-//expr->(if|while_do|do_while) (WHIlE LB condition RB)? ASSIGN_OP (expr_val)+ ENDLINE
-//if->IF LB condition RB
-//while_do-> WHILE LB condition RB
-//do_while->DO
-//condition-> VAR COMPARISON_OP (expr_val)+
-//expr_val->value | OP_VALUE
-//value-> VAR | DIGIT

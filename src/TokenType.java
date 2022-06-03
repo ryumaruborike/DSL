@@ -13,7 +13,7 @@ public class TokenType {
         regexp.put("OPERATOR", "^[-|+|/|*|%]$");
         regexp.put("ASSIGNMENT_OPERATOR", "^=$");
         regexp.put("ENDLINE", "^\\;$");
-        regexp.put("DO_WHILE", "^[D][O]$");
+        regexp.put("DO_WHILE", "^DO$");
         regexp.put("DIV","^,$");
         regexp.put("PRINT","^PRINT$");
         regexp.put("FOR","^FOR$");

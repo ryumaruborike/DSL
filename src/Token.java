@@ -5,4 +5,20 @@ public class Token {
         type = Type;
         token = Token;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "type='" + type + '\'' +
+                ", token='" + token + '\'' +
+                '}';
+    }
 }
