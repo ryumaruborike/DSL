@@ -295,74 +295,53 @@ public class Inter {
         };
     }
     private ArrayList<Token> toPostfix(ArrayList<Token> infixExpr, int start, int end) {
-        //	Выходная строка, содержащая постфиксную запись
         ArrayList<Token> postfixExpr = new ArrayList<>();
-        //	Инициализация стека, содержащий операторы в виде символов
         Stack<Token> stack = new Stack<>();
 
-        //	Перебираем строку
         for (int i = start; i < end; i++) {
-            //	Текущий символ
             Token c = infixExpr.get(i);
-            //	Если симовол - цифра
             if (c.type.equals("DIGIT") || c.type.equals("VAR")) {
                 postfixExpr.add(c);
-            } else if (c.type.equals("L_BC")) { //	Если открывающаяся скобка
-                //	Заносим её в стек
+            } else if (c.type.equals("L_BC")) {
                 stack.push(c);
-            } else if (c.type.equals("R_BC")) {//	Если закрывающая скобка
-                //	Заносим в выходную строку из стека всё вплоть до открывающей скобки
+            } else if (c.type.equals("R_BC")) {
                 while (stack.size() > 0 && stack.peek().type != "L_BC")
                     postfixExpr.add(stack.pop());
-                //	Удаляем открывающуюся скобку из стека
                 stack.pop();
-            } else if (c.type == "OPERATOR") { //	Проверяем, содержится ли символ в списке операторов
+            } else if (c.type.equals("OPERATOR")) {
                 Token op = c;
-                //	Заносим в выходную строку все операторы из стека, имеющие более высокий приоритет
                 while (stack.size() > 0 && (operationPriority(stack.peek()) >= operationPriority(op)))
                     postfixExpr.add(stack.pop());
-                //	Заносим в стек оператор
                 stack.push(c);
             }
         }
-        //	Заносим все оставшиеся операторы из стека в выходную строку
         postfixExpr.addAll(stack);
 
-        //	Возвращаем выражение в постфиксной записи
         return postfixExpr;
     }
 
     private double calc(ArrayList<Token> postfixExpr) {
-        //	Стек для хранения чисел
         Stack<Double> locals = new Stack<>();
-        //	Счётчик действий
         int counter = 0;
 
-        //	Проходим по строке
         for (int i = 0; i < postfixExpr.size(); i++) {
-            //	Текущий символ
             Token c = postfixExpr.get(i);
 
-            //	Если символ число
             if (c.type.equals("DIGIT")) {
                 String number = c.token;
                 locals.push(Double.parseDouble(number));
             } else if (c.type.equals("VAR")) {
                 locals.push(variables.get(c.token));
-            } else if (c.type.equals("OPERATOR")) { //	Если символ есть в списке операторов
-                //	Прибавляем значение счётчику
+            } else if (c.type.equals("OPERATOR")) {
                 counter++;
 
-                //	Получаем значения из стека в обратном порядке
                 double second = locals.size() > 0 ? locals.pop() : 0,
                         first = locals.size() > 0 ? locals.pop() : 0;
 
-                //	Получаем результат операции и заносим в стек
                 locals.push(execute(c, first, second));
             }
         }
 
-        //	По завершению цикла возвращаем результат из стека
         return locals.pop();
     }
 

@@ -89,8 +89,8 @@ public class Parser {
             value();
         }
     }
-
     public void value() {
+
         switch (curToken.getType()) {
             case "DIGIT" -> check("DIGIT");
             case "L_BC" -> infinity();
