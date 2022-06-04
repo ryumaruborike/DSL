@@ -78,7 +78,7 @@ public class MyLinkedList<T>{
         }
         return null;
     }
-    public void printLinkList(){
+    public void printLinkedList(){
         Node<T> p;
         for(p = head;p != null;p = p.next){
             System.out.print(p.value+" ");

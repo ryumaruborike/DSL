@@ -28,7 +28,7 @@ public class Parser {
         }
     }
 
-    public void terminalCheck(String tokenType) {
+    public void check(String tokenType) {
         try {
             TERMINAL(tokenType);
         } catch (ParseExc e) {
@@ -61,7 +61,7 @@ public class Parser {
 
     public void expr() {
         body();
-        terminalCheck("ENDLINE");
+        check("ENDLINE");
     }
 
     public void body() {
@@ -74,7 +74,7 @@ public class Parser {
             case "PRINT" -> print();
             case "LL" -> linked_list();
             case "PRNTLIST" -> linked_list_print();
-            default -> terminalCheck("VAR");
+            default -> check("VAR");
         }
     }
 
@@ -82,42 +82,42 @@ public class Parser {
         switch (curToken.getType()) {
             case "VAR", "DIGIT" -> value();
             case "L_BC" -> infinity();
-            default -> terminalCheck("VAR");
+            default -> check("VAR");
         }
         while ("OPERATOR".equals(curToken.getType())) {
-            terminalCheck("OPERATOR");
+            check("OPERATOR");
             value();
         }
     }
 
     public void value() {
         switch (curToken.getType()) {
-            case "DIGIT" -> terminalCheck("DIGIT");
+            case "DIGIT" -> check("DIGIT");
             case "L_BC" -> infinity();
-            default -> terminalCheck("VAR");
+            default -> check("VAR");
         }
     }
 
     public void infinity() {
-        terminalCheck("L_BC");
+        check("L_BC");
         expr_value();
-        terminalCheck("R_BC");
+        check("R_BC");
     }
 
     public void condition() {
-        terminalCheck("VAR");
-        terminalCheck("COMPARISON_OP");
+        check("VAR");
+        check("COMPARISON_OP");
         expr_value();
     }
 
     public void condition_in_br() {
-        terminalCheck("L_BC");
+        check("L_BC");
         condition();
-        terminalCheck("R_BC");
+        check("R_BC");
     }
 
     public void if_op() {
-        terminalCheck("IF_OPERATION");
+        check("IF_OPERATION");
         condition_in_br();
         do {
             body();
@@ -128,14 +128,14 @@ public class Parser {
     }
 
     public void else_op() {
-        terminalCheck("ELSE");
+        check("ELSE");
         do {
             expr();
         } while (body_condition());
     }
 
     public void while_op() {
-        terminalCheck("WHILE");
+        check("WHILE");
         condition_in_br();
         do {
             body();
@@ -143,25 +143,25 @@ public class Parser {
     }
 
     public void do_while_op() {
-        terminalCheck("DO_WHILE");
+        check("DO_WHILE");
         do {
             body();
         } while (body_condition_do_while());
-        terminalCheck("WHILE");
+        check("WHILE");
         condition_in_br();
     }
 
     public void for_op() {
-        terminalCheck("FOR");
-        terminalCheck("L_BC");
-        terminalCheck("VAR");
+        check("FOR");
+        check("L_BC");
+        check("VAR");
         assign();
-        terminalCheck("DIV");
+        check("DIV");
         condition();
-        terminalCheck("DIV");
-        terminalCheck("VAR");
+        check("DIV");
+        check("VAR");
         assign();
-        terminalCheck("R_BC");
+        check("R_BC");
         do {
             body();
         } while (body_condition());
@@ -169,12 +169,12 @@ public class Parser {
 
     public void assign() {
         //terminalCheck("VAR");
-        terminalCheck("ASSIGNMENT_OPERATOR");
+        check("ASSIGNMENT_OPERATOR");
         expr_value();
     }
 
     public void var() {
-        terminalCheck("VAR");
+        check("VAR");
         if("POINT".equals(curToken.getType())){
             ll_operate();
         }
@@ -185,64 +185,64 @@ public class Parser {
 
     public void ll_operate(){
         //terminalCheck("VAR");
-        terminalCheck("POINT");
+        check("POINT");
         if("LLadd".equals(curToken.getType())){
-            terminalCheck("LLadd");
+            check("LLadd");
             if("L_BC".equals(curToken.getType())){
-                terminalCheck("L_BC");
+                check("L_BC");
                 if("VAR".equals(curToken.getType())){
-                    terminalCheck("VAR");
+                    check("VAR");
                 }
                 else if("DIGIT".equals(curToken.getType())) {
-                    terminalCheck("DIGIT");
+                    check("DIGIT");
                 }
                 if("R_BC".equals(curToken.getType())){
-                    terminalCheck("R_BC");
+                    check("R_BC");
                 }
             }
         }
         if("LLremove".equals(curToken.getType())){
-            terminalCheck("LLremove");
+            check("LLremove");
             if("L_BC".equals(curToken.getType())){
-                terminalCheck("L_BC");
+                check("L_BC");
                 if("VAR".equals(curToken.getType())){
-                    terminalCheck("VAR");
+                    check("VAR");
                 }
                 else if("DIGIT".equals(curToken.getType())) {
-                    terminalCheck("DIGIT");
+                    check("DIGIT");
                 }
                 if("R_BC".equals(curToken.getType())){
-                    terminalCheck("R_BC");
+                    check("R_BC");
                 }
             }
         }
         if("LLget".equals(curToken.getType())){
-            terminalCheck("LLget");
+            check("LLget");
             if("L_BC".equals(curToken.getType())){
-                terminalCheck("L_BC");
+                check("L_BC");
                 if("VAR".equals(curToken.getType())){
-                    terminalCheck("VAR");
+                    check("VAR");
                 }
                 else if("DIGIT".equals(curToken.getType())) {
-                    terminalCheck("DIGIT");
+                    check("DIGIT");
                 }
                 if("R_BC".equals(curToken.getType())){
-                    terminalCheck("R_BC");
+                    check("R_BC");
                 }
             }
         }
         if("LLsize".equals(curToken.getType())){
-            terminalCheck("LLsize");
+            check("LLsize");
             if("L_BC".equals(curToken.getType())){
-                terminalCheck("L_BC");
+                check("L_BC");
                 if("VAR".equals(curToken.getType())){
-                    terminalCheck("VAR");
+                    check("VAR");
                 }
                 else if("DIGIT".equals(curToken.getType())) {
-                    terminalCheck("DIGIT");
+                    check("DIGIT");
                 }
                 if("R_BC".equals(curToken.getType())){
-                    terminalCheck("R_BC");
+                    check("R_BC");
                 }
             }
         }
@@ -251,35 +251,35 @@ public class Parser {
     public void expr_assign() {
         assign();
         while ("DIV".equals(curToken.getType())) {
-            terminalCheck("DIV");
+            check("DIV");
             assign();
         }
     }
 
     public void print() {
-        terminalCheck("PRINT");
+        check("PRINT");
         if ("L_BC".equals(curToken.getType())) {
-            terminalCheck("L_BC");
+            check("L_BC");
             if ("DIGIT".equals(curToken.getType())) {
-                terminalCheck("DIGIT");
+                check("DIGIT");
             } else {
-                terminalCheck("VAR");
+                check("VAR");
             }
-            terminalCheck("R_BC");
+            check("R_BC");
         }
     }
 
     public void linked_list() {
-        terminalCheck("LL");
-        terminalCheck("VAR");
+        check("LL");
+        check("VAR");
     }
 
     public void linked_list_print(){
-        terminalCheck("PRNTLIST");
+        check("PRNTLIST");
         if ("L_BC".equals(curToken.getType())) {
-            terminalCheck("L_BC");
-            terminalCheck("VAR");
-            terminalCheck("R_BC");
+            check("L_BC");
+            check("VAR");
+            check("R_BC");
         }
     }
 }

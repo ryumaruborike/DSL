@@ -65,7 +65,7 @@ public class Inter {
                     cur = infixExpr.get(iterator);
                     if (cur.type.equals("VAR")) {
                         System.out.print("List " + cur.token + ": ");
-                        LLvariables.get(cur.token).printLinkList();
+                        LLvariables.get(cur.token).printLinkedList();
                         iterator++;
                     }
                 }
@@ -89,7 +89,7 @@ public class Inter {
         iterator++;
         cur = infixExpr.get(iterator);
         if (infixExpr.get(iterator + 1).type.equals("L_BC")){
-            System.out.println("Size = " + LLvariables.get(LinkedList_var).size() + "(Linked List " + LinkedList_var + ")");
+            System.out.println("Size of " + LinkedList_var + " is " + LLvariables.get(LinkedList_var).size());
         }
     }
 
@@ -100,7 +100,7 @@ public class Inter {
             iterator+=2;
             cur = infixExpr.get(iterator);
             if (cur.type.equals("DIGIT")){
-                System.out.println("element by index: " + cur.token + " = " + LLvariables.get(LinkedList_var).get(Integer.parseInt(cur.token)));
+                System.out.println("element with index " + cur.token + " is " + LLvariables.get(LinkedList_var).get(Integer.parseInt(cur.token)));
             }
         }
         iterator++;
@@ -148,7 +148,7 @@ public class Inter {
         while (!cur.type.equals("ENDLINE")) {
             if ("LL".equals(cur.type)) {
                 list = new MyLinkedList<>();
-                System.out.println("empty LinkedList created");
+                System.out.println("LinkedList created");
             }
             if ("VAR".equals(cur.type)) {
                 LLvariables.put(cur.token, list);
