@@ -7,7 +7,9 @@ public class MyLinkedList<T>{
             this.next = null;
         }
     }
+
     private Node<T> head = null;
+
     public int size() {
         Node<T> p;
         int size = 0;
@@ -16,6 +18,7 @@ public class MyLinkedList<T>{
         }
         return size;
     }
+
     public boolean isEmpty() {
         if(size() == 0){
             return true;
@@ -36,6 +39,7 @@ public class MyLinkedList<T>{
             node.next = null;
         }
     }
+
     public T get(int index) {
         int i=-1;
         if(isEmpty()){
@@ -54,6 +58,7 @@ public class MyLinkedList<T>{
         }
         return null;
     }
+
     public T remove(int index) {
         if(isEmpty()){
             return null;
@@ -78,6 +83,7 @@ public class MyLinkedList<T>{
         }
         return null;
     }
+
     public void printLinkedList(){
         Node<T> p;
         for(p = head;p != null;p = p.next){
